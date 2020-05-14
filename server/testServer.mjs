@@ -9,7 +9,7 @@ const options = {
 }
 
 const secureServer = https.createServer(options,(req, res) => {
-    console.log({req})
+    // console.log({req})
     res.writeHead(200, { 'Content-Type': 'text/plain' })
     res.end('hello world \n')
 })
