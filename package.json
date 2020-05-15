@@ -2,7 +2,7 @@
   "name": "minigun",
   "version": "0.0.1",
   "description": "Modern HTTP/X benchmarking tool, with a strong emphasis on statistical significance of the results",
-  "main": "index.js",
+  "main": "index.mjs",
   "repository": "git@github.com:alberto-esposito/minigun.git",
   "author": "Alberto Esposito <alberto.websci@gmail.com>",
   "license": "MIT",
