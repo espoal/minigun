@@ -1,3 +1,5 @@
+/* eslint-env jest */
+
 const dns = require('dns')
 const http = require('http')
 const https = require('https')
@@ -6,177 +8,141 @@ const http2 = require('http2')
 // const callback = (res) => console.log({res})
 
 const reqOptions = {
-    agent: undefined,
-    auth: "",
-    createConnection: false,
-    defaultPort: 8000,
-    family: 4,
-    headers: undefined,
-    hostname: 'localhost',
-    insecureHTTPParser: false,
-    localAddress: '127.0.0.1',
-    lookup: dns.lookup,
-    maxHeaderSize: 16384,
-    method: 'GET',
-    path: '/',
-    protocol: 'http:',
-    port: 8000,
-    setHost: true,
-    timeOut: 500,
-    callback: null
+  agent: undefined,
+  auth: '',
+  createConnection: false,
+  defaultPort: 8000,
+  family: 4,
+  headers: undefined,
+  hostname: 'localhost',
+  insecureHTTPParser: false,
+  localAddress: '127.0.0.1',
+  lookup: dns.lookup,
+  maxHeaderSize: 16384,
+  method: 'GET',
+  path: '/',
+  protocol: 'http:',
+  port: 8000,
+  setHost: true,
+  timeOut: 500,
+  callback: null
 }
 
-
 test('http server', done => {
+  const server = http.createServer((req, res) => {
+    // console.log({req})
+    res.writeHead(200, { 'Content-Type': 'text/plain' })
+    res.end('hello world \n')
+  })
 
-    const server = http.createServer((req, res) => {
-        // console.log({req})
-        res.writeHead(200, { 'Content-Type': 'text/plain' })
-        res.end('hello world \n')
-    })
+  /* server.on('clientError', (err, socket) => {
+    socket.end('HTTP/1.1 400 Bad Request\r\n\r\n')
+  }) */
 
-    server.on('clientError', (err, socket) => {
-        socket.end('HTTP/1.1 400 Bad Request\r\n\r\n')
-    })
+  server.listen(8000)
 
-    server.listen(8000)
+  reqOptions.agent = new http.Agent()
 
-    reqOptions.agent = new http.Agent()
+  const req = http.request(reqOptions, (res) => {
+    // console.log({res})
+    expect(res).toBeTruthy()
+    expect(res.statusCode).toBe(200)
+    expect(res.httpVersion).toBe('1.1')
+    expect(res.httpVersion).toBe('1.1')
+    server.close()
+    done()
+  })
 
-    const req = http.request(reqOptions, (res) => {
-        //console.log({res})
-        expect(res).toBeTruthy()
-        expect(res.statusCode).toBe(200)
-        expect(res.httpVersion).toBe('1.1')
-        expect(res.httpVersion).toBe('1.1')
-        server.close()
-        done()
-    })
-
-
-    req.end()
-
-
-
-
-
+  req.end()
 })
-
-
-
-
 
 const fs = require('fs')
 
-test('read certificates', ()=> {
+test('read certificates', () => {
+  const options = {
+    key: fs.readFileSync('./server/certs/RootCA.key'),
+    cert: fs.readFileSync('./server/certs/RootCA.pem')
+  }
 
-        const options = {
-            key: fs.readFileSync('./server/certs/RootCA.key'),
-            cert: fs.readFileSync('./server/certs/RootCA.pem')
-        }
-
-
-    expect(options).toBeTruthy()
+  expect(options).toBeTruthy()
 })
 
-
 test('https server', done => {
+  const options = {
+    key: fs.readFileSync('./server/certs/RootCA.key'),
+    cert: fs.readFileSync('./server/certs/RootCA.pem')
+  }
 
-    const options = {
-        key: fs.readFileSync('./server/certs/RootCA.key'),
-        cert: fs.readFileSync('./server/certs/RootCA.pem')
-    }
+  const secureServer = https.createServer(options, (req, res) => {
+    // console.log({req})
+    res.writeHead(200, { 'Content-Type': 'text/plain' })
+    res.end('hello world \n')
+  })
 
-    const secureServer = https.createServer(options, (req, res) => {
-        // console.log({req})
-        res.writeHead(200, { 'Content-Type': 'text/plain' })
-        res.end('hello world \n')
-    })
+  /* secureServer.on('clientError', (err, socket) => {
+    socket.end('HTTP/1.1 400 Bad Request\r\n\r\n')
+  }) */
 
-    secureServer.on('clientError', (err, socket) => {
-        socket.end('HTTP/1.1 400 Bad Request\r\n\r\n')
-    })
+  secureServer.listen(8443)
 
-    secureServer.listen(8443)
+  reqOptions.agent = new https.Agent({ rejectUnauthorized: false })
 
-    reqOptions.agent = new https.Agent({rejectUnauthorized: false})
+  reqOptions.protocol = 'https:'
 
-    reqOptions.protocol = 'https:'
+  reqOptions.port = 8443
 
-    reqOptions.port = 8443
+  const req = https.request(reqOptions, res => {
+    // console.log({res})
+    expect(res).toBeTruthy()
+    expect(res.statusCode).toBe(200)
+    expect(res.httpVersion).toBe('1.1')
+    expect(res.httpVersion).toBe('1.1')
+    secureServer.close()
+    done()
+  })
 
-    const req = https.request(reqOptions, res => {
-        // console.log({res})
-        expect(res).toBeTruthy()
-        expect(res.statusCode).toBe(200)
-        expect(res.httpVersion).toBe('1.1')
-        expect(res.httpVersion).toBe('1.1')
-        secureServer.close()
-        done()
-    })
-
-
-    req.end()
-
-
-
-
-
+  req.end()
 })
 
 test('http2 server', done => {
+  const h2Server = http2.createSecureServer({
+    key: fs.readFileSync('./server/certs/RootCA.key'),
+    cert: fs.readFileSync('./server/certs/RootCA.pem')
+  })
 
-    const h2Server = http2.createSecureServer({
-        key: fs.readFileSync('./server/certs/RootCA.key'),
-        cert: fs.readFileSync('./server/certs/RootCA.pem')
+  h2Server.on('error', err => console.log({ err }))
+
+  h2Server.on('stream', (stream, headers) => {
+    // stream is a Duplex
+    stream.respond({
+      'content-type': 'text/html',
+      ':status': 200
     })
 
-    h2Server.on('error', err => console.log({err}) )
+    stream.write('hello ')
 
-    h2Server.on('stream', (stream, headers) => {
-        // stream is a Duplex
-        stream.respond({
-            'content-type': 'text/html',
-            ':status': 200
-        })
+    stream.end('World\n')
+  })
 
-        stream.write('hello ')
+  h2Server.listen(8080)
 
-        stream.end('World\n')
-    })
+  const client = http2.connect('https://localhost:8080', {
+    rejectUnauthorized: false
+  })
 
-    h2Server.listen(8080)
+  client.on('error', err => console.error(err))
 
-    const client = http2.connect('https://localhost:8080', {
-        rejectUnauthorized: false
-    })
+  const req = client.request({ ':path': '/' })
 
-    client.on('error', err => console.error(err))
+  let data = ''
 
-    const req = client.request({ ':path': '/' })
+  req.on('data', (chunk) => { data += chunk })
 
-    let data = ''
-
-    req.on('data', (chunk) => { data += chunk; })
-
-    req.on('end', () => {
-        expect(data).toBe('hello World\n')
-        client.close()
-        h2Server.close()
-        req.end()
-        done()
-    })
-
-
-
-
-
-
-
-
+  req.on('end', () => {
+    expect(data).toBe('hello World\n')
+    client.close()
+    h2Server.close()
+    req.end()
+    done()
+  })
 })
-
-
-
-
-
