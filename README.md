@@ -6,8 +6,14 @@ Like them it puts a great emphasis on statistical significance, by avoiding the 
 
 Under the hood minigun is both multithreaded and asynchronous, as generating a high load is fundamental to extract statistically significant results.
 
+# Installation and quickstart
+
+
+# Ragionale
+
 I created this tool to benchmark the framework Rapido, and the various server implementations of HTTP/2 and HTTP/3. 
 
 [1]: https://github.com/mcollina/autocannon
 [2]: https://github.com/giltene/wrk2
 [3]: http://highscalability.com/blog/2015/10/5/your-load-generator-is-probably-lying-to-you-take-the-red-pi.html
+[4]: https://w3c.github.io/performance-timeline/
